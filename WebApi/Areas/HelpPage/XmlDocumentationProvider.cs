@@ -5,14 +5,13 @@ using System.Reflection;
 using System.Web.Http.Controllers;
 using System.Web.Http.Description;
 using System.Xml.XPath;
-using WebApi.Areas.HelpPage.ModelDescriptions;
 
 namespace WebApi.Areas.HelpPage
 {
-    /// <summary>
-    /// A custom <see cref="IDocumentationProvider"/> that reads the API documentation from an XML documentation file.
-    /// </summary>
-    public class XmlDocumentationProvider : IDocumentationProvider, IModelDocumentationProvider
+  /// <summary>
+  /// A custom <see cref="IDocumentationProvider"/> that reads the API documentation from an XML documentation file.
+  /// </summary>
+  public class XmlDocumentationProvider : IDocumentationProvider, IModelDocumentationProvider
     {
         private XPathNavigator _documentNavigator;
         private const string TypeExpression = "/doc/members/member[@name='T:{0}']";
@@ -158,4 +157,8 @@ namespace WebApi.Areas.HelpPage
             return name;
         }
     }
+
+  internal interface IModelDocumentationProvider
+  {
+  }
 }

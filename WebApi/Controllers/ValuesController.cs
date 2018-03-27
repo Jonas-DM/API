@@ -1,127 +1,112 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Web.Http.Results;
+using System.Web.Mvc;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
+using WebApi.Models;
+
+
 
 namespace WebApi.Controllers
 {
+  [System.Web.Http.RoutePrefix("api/broodjes")]
   public class ValuesController : ApiController
   {
-	MySqlConnection conn = WebApiConfig.conn();
+	 [System.Web.Http.Route("{id:int}")]
+	 
+	 //GET = ophalen
+	 //POST = aanmaken
+	 //PUT = update
+	 //DELETE = verwijderen
 
-	// GET api/values
-	//public IEnumerable<string> Get( )
-	//{
-	//  return new string[] { "value1", "value2" };
-	//}
+	 //GET api/values
 
-	public List<Beleg> lijst = new List<Beleg>( );
+	 
 
-	// GET api/values/5
-	//public List<Beleg> Get(int id)
-	//{
-	//  MySqlConnection conn = WebApiConfig.conn( );
+	 public IEnumerable<string> Get( )
+	 {
+		
+		return new string[] { "value1", "value2" };
+	 }
 
-	//  //MySqlCommand query = conn.CreateCommand( );
+	 //GET api/values/5
+	 public string Get(int id)
+	 {
+		return "value";
+	 }
 
-	//  //query.CommandText = "SELECT * FROM beleg";
-	//  string query = "SELECT * FROM " + tabel;
-	//  MySqlCommand cmd = new MySqlCommand( query, conn);
-	//  try
-	//  {
-	//	conn.Open( );
-	//  }
-	//  catch(MySql.Data.MySqlClient.MySqlException ex)
-	//  {
+	 //POST api/values
+	 public void Post([FromBody]string value)
+	 {
+	 }
 
+	 
 
-	//  }
+	 MySqlConnection conn = WebApiConfig.conn( );
 
-	//  MySqlDataReader reader = cmd.ExecuteReader( );
-
-
-	//  while(reader.Read())
-	//  {
-	//	lijst.Add(new Beleg(reader.GetInt32(0), reader.GetString(1)));
-	//  }
-	//  conn.Close( );
-
-	//  return lijst;
-	//}
-
-	public List<object> Get(string tabel, string[] velden, string where)
-	{
-	  //Type t = Type.GetType(tabel, true);
-	  //Debug.WriteLine(t.ToString());
-	  string q = "SELECT ";
-	  int x = 1;
-	  foreach(string veld in velden)
-	  {
-		if(x == velden.Length)
+	 public ResponseModel  Get(string tabel, string[] velden, string where, object klasse)
+	 {
+		Type t = klasse.GetType( );
+		string q = "SELECT ";
+		int x = 1;
+		foreach(string veld in velden)
 		{
-		  q += veld + " ";
-		  continue; //zodat het volgend statement niet wordt uitgevoerd.
+		  if(x == velden.Length)
+		  {
+			 q += veld + " ";
+			 continue; //zodat het volgend statement niet wordt uitgevoerd.
+		  }
+		  q += veld + ", ";
+		  x++;
 		}
-		q += veld + ", ";
-		x++;
-	  }
 
-	  q += "FROM " + tabel; 
+		q += "FROM " + tabel;
 
-	  MySqlCommand cmd = new MySqlCommand(q, conn);
-	  conn.Open( );
-	  MySqlDataReader reader = cmd.ExecuteReader( );
+		MySqlCommand cmd = new MySqlCommand(q, conn);
+		conn.Open( );
 
-	  List<object> lijst = new List<object>( );
+		DataTable dt = new DataTable( );
+		dt.Load(cmd.ExecuteReader( ));
+		conn.Close( );
 
-	  while(reader.Read( ))
-	  {
-		lijst.Add(new Beleg(reader.GetInt32(0), reader.GetString(1)));
-	  }
+		List<object> lijst = new List<object>( );
 
-	  return lijst;
-	}
+		foreach(DataRow row in dt.Rows)
+		{
+		  lijst.Add(t.GetMethod("Create").Invoke(null, new object[] { row }));
+		}
 
-	// POST api/values
-	public void Post([FromBody]string value)
-	{
-	}
+		ResponseModel respModel = new ResponseModel
+		{
+		  Data = lijst,
+		  Status = true,
+		  Message = "Data Recieved"
+		};
 
-	// PUT api/values/5
-	public void Put(int id, [FromBody]string value)
-	{
-	}
-
-	// DELETE api/values/5
-	public void Delete(int id)
-	{
-	}
+		return respModel;
+	 }
   }
 
-  public class Beleg
+  public class ResponseModel
   {
-	private int id;
-	private string beleg;
-
-	public Beleg(int id, string beleg)
-	{
-	  this.id = id;
-	  this.beleg = beleg;
-	}
-
-	public int Id
-	{
-	  get => id;
-	  set => id = value;
-	}
-	public string Beeleg
-	{
-	  get => beleg;
-	  set => beleg = value;
-	}
+	 public string Message
+	 {
+		set; get;
+	 }
+	 public bool Status
+	 {
+		set; get;
+	 }
+	 public object Data
+	 {
+		set; get;
+	 }
   }
 }
